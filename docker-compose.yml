@@ -1,0 +1,26 @@
+services:
+  tg_bot:
+    build:
+      context: tg_bot
+      dockerfile: Dockerfile
+    restart: always
+    networks:
+      - tg_bot_backend
+
+  redis:
+    image: redis
+    restart: always
+    volumes:
+      - db_redis:/root/redis
+      - db_redis:/data
+    command: redis-server --dir /data --save 60 1
+    networks:
+      - tg_bot_backend
+
+volumes:
+  db_redis:
+    name: db_redis
+    driver: local
+
+networks:
+  tg_bot_backend:
