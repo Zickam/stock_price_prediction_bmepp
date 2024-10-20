@@ -11,7 +11,7 @@ from aiogram.fsm.storage.redis import RedisStorage
 import aiogram
 from redis.asyncio import Redis
 
-import router
+from tg_bot import user
 
 redis = Redis(host="redis")
 
@@ -36,7 +36,7 @@ async def main():
     # await bot.delete_webhook(drop_pending_updates=True)
 
     dp.include_routers(
-        router.router
+        user.router
     )
 
     await dp.start_polling(bot)

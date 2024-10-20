@@ -1,0 +1,13 @@
+choose_language: "Пожалуйста выберите язык\nPlease choose language"
+
+keyboards:
+  menu:
+    analysis: "Analyze"
+    about: "About"
+    language: "РУС🇷🇺"
+
+welcome: "Hello!"
+about: "Info about us"
+
+choose_ticker: "Write down company ticker or choose it on the buttons below"
+unexpected_ticker: "Unexpected ticker {ticker}"

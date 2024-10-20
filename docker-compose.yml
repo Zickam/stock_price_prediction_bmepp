@@ -1,9 +1,12 @@
 services:
   tg_bot:
     build:
-      context: tg_bot
+      context: .
       dockerfile: Dockerfile
+    env_file: .env
     restart: always
+    volumes:
+      - $PWD:/usr/src/app
     networks:
       - tg_bot_backend
 
