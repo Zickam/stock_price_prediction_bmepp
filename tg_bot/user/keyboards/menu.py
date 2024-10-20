@@ -28,8 +28,9 @@ async def showMenu(state: FSMContext) -> ReplyKeyboardMarkup:
     return builder.as_markup(resize_keyboard=True, is_persistent=True)
 
 async def showAnalysisMenu(state: FSMContext) -> InlineKeyboardMarkup:
-    from tg_bot.user.menu import tickers
     builder = InlineKeyboardBuilder()
+
+    tickers = ["ydex", "sber", "sofl", "tcsg"]
 
     for ticker in tickers:
         builder.add(

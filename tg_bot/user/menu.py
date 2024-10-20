@@ -12,8 +12,6 @@ from tg_bot.user import states
 
 menu_router = Router()
 
-tickers = ["sber", "yndx", "tcsg"]
-
 async def start(msg, state):
     await msg.answer(
         await getText("welcome", state),
