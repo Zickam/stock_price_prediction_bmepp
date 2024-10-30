@@ -25,8 +25,10 @@ for atag, suptag in zip(ashki, supchiki):
     name_dict[name] = ticker
     print(ticker, name)
 
+
 def clean_string(s):
     return re.sub(r'"', "'", s).strip()
+
 
 with open('tickers.csv', 'w', newline='', encoding='utf-8') as csvfile:
     writer = csv.writer(csvfile)

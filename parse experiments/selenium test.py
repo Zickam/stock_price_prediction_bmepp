@@ -19,16 +19,24 @@ wait = WebDriverWait(driver, 15)  # Увеличиваем время ожида
 try:
     # Переход на сайт Investing.com
     driver.get(f"https://ru.investing.com/search?q={ticker}")
-
     time.sleep(3)
-    banner_button = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "button[id='onetrust-accept-btn-handler']")))
-    banner_button.click()
-    time.sleep(2)
+
+    # banner_button = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "button[id='onetrust-accept-btn-handler']")))
+    # banner_button.click()
+    # time.sleep(2)
 
     # Переход на вкладку "Новости"
     first_result = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "a.js-inner-all-results-quote-item.row")))
     first_result.click()
-    time.sleep(3)  # Пауза для загрузки страницы компании
+    time.sleep(5)  # Пауза для загрузки страницы компании
+
+    proceed_button = driver.find_element(By.CSS_SELECTOR, "input[type='checkbox']")
+    action = webdriver.ActionChains(driver)
+    webdriver.ActionChains(driver)
+    action.move_to_element(proceed_button)
+    action.move_by_offset(10, 20)
+    action.click(proceed_button)
+    action.perform()
 
     # Переходим на вкладку "Новости"
     news_tab = wait.until(EC.element_to_be_clickable((By.XPATH, "//a[contains(@href, 'news')]")))
