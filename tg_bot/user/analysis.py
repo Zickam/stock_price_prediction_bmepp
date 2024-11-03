@@ -11,6 +11,7 @@ from aiogram.types import FSInputFile
 from tinkoff.invest import CandleInterval
 from tinkoff.invest.utils import now
 
+from analysis.functions import getSimplePriceChangeCoefficient
 from tg_bot.user.localizations.get_localizations import getText
 from tg_bot.user import keyboards
 from tg_bot.user import filters
@@ -18,6 +19,7 @@ from tg_bot.user import states
 from tg_bot.user.menu import showAnalysisMsg
 import tinkoff_api
 import plot
+from tinkoff_api.utilities import getAssetByTicker, getStockDataByTicker, getStockInfoByTicker
 
 analysis_router = Router()
 
@@ -42,7 +44,20 @@ async def handleChosenTicker(msg: Message, state: FSMContext, ticker: str):
     plot.utilities.renderPlot(time_and_close, ticker)
 
     media = FSInputFile("tmp.png")
-    await msg.answer_photo(media, caption=f"showing close prices for ticker {ticker}")
+
+    price_half_year_ago = candles[0].close.units + candles[0].close.nano / 10 ** 9
+    price_now = candles[-1].close.units + candles[-1].close.nano / 10 ** 9
+
+    price_change = getSimplePriceChangeCoefficient(
+        price_half_year_ago,
+        price_now
+   )
+
+    await msg.answer_photo(
+        media,
+        caption=f"*{ticker.upper()}* stock price changed by *{round(price_change * 100)}%*\nFrom *{price_half_year_ago}RUB*\nTo *{price_now}RUB*",
+        parse_mode="Markdown"
+    )
 
 @analysis_router.message(StateFilter(states.Menu.choose_ticker))
 async def handleAnalysisMsg(msg: Message, state: FSMContext):

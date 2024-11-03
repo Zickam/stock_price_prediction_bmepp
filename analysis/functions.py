@@ -1,8 +1,10 @@
-from tinkoff.invest import CandleInterval
+from tinkoff.invest import CandleInterval, StatisticResponse
+
+from tinkoff_api.utilities import getStockInfoByTicker
 
 
 def getSimplePriceChangeCoefficient(price_a, price_b) -> float:
-    return 1 + (price_b - price_a) / price_a
+    return (price_b - price_a) / price_a
 
 def getSMAs(close_prices: list[float], window_size: int) -> list[float]:
     """simple moving average"""
@@ -29,12 +31,17 @@ def getEMAs(close_prices: list[float], window_size: int, smoothing: float) -> li
 
 
 if __name__ == "__main__":
-    from tinkoff_api.utilities import getStockDataByTicker
-    from tinkoff.invest.utils import now
-    from datetime import timedelta
+    # from tinkoff_api.utilities import getStockDataByTicker
+    # from tinkoff.invest.utils import now
+    # from datetime import timedelta
+    # import asyncio
+    # data = asyncio.run(getStockDataByTicker("LKOH", now() - timedelta(days=30 * 6), CandleInterval.CANDLE_INTERVAL_DAY))
+    # prices = []
+    # for d in data:
+    #     prices.append(d.close.units + d.close.nano / 10 ** 9)
+    # print(getEMAs(prices, 30, 2))
     import asyncio
-    data = asyncio.run(getStockDataByTicker("LKOH", now() - timedelta(days=30 * 6), CandleInterval.CANDLE_INTERVAL_DAY))
-    prices = []
-    for d in data:
-        prices.append(d.close.units + d.close.nano / 10 ** 9)
-    print(getEMA(prices, 30, 2))
+    # stock_info = asyncio.run(getStockInfoByTicker("lkoh"))
+    # print(stock_info)
+    # calculateLynchFairValue(3312, stock_info)
+    print(getSimplePriceChangeCoefficient(100, 50))

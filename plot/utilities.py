@@ -37,7 +37,6 @@ def renderPlot(data_close_prices: list[tuple[datetime, float]], ticker: str):
     emas_datetimes = datetimes[window_size - 1:len(datetimes)]
     plt.plot(emas_datetimes, EMAs, "--", label="EMA", linewidth=1, alpha=0.8)
 
-
     plt.xlabel('datetime')
     plt.ylabel("price(RUB)")
     plt.title(ticker.upper())

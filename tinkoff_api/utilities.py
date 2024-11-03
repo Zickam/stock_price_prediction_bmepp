@@ -2,7 +2,8 @@ import asyncio
 import os
 from datetime import timedelta, datetime
 
-from tinkoff.invest import AsyncClient, CandleInterval, Client, Candle, HistoricCandle
+from tinkoff.invest import AsyncClient, CandleInterval, Client, Candle, HistoricCandle, GetAssetFundamentalsResponse, \
+    GetAssetFundamentalsRequest, InstrumentResponse, Instrument, StatisticResponse
 from tinkoff.invest.utils import now
 from tinkoff.invest.constants import INVEST_GRPC_API_SANDBOX
 from tinkoff.invest.async_services import AsyncServices, InstrumentIdType
@@ -30,7 +31,7 @@ async def getStockDataByTicker(ticker: str, from_datetime: datetime, interval: C
 
     data = []
 
-    figi = await getFIGIByTicker(ticker.upper())
+    figi = await getFIGIByTicker(ticker)
 
     async with AsyncClient(TOKEN, target=INVEST_GRPC_API_SANDBOX) as client:
         async for candle in client.get_all_candles(
@@ -46,10 +47,23 @@ async def getStockDataByTicker(ticker: str, from_datetime: datetime, interval: C
     return data
 
 
-async def getFIGIByTicker(ticker: str, class_code: str = "TQBR"):
-    with Client(TOKEN) as client:
-        r = client.instruments.get_instrument_by(id_type=InstrumentIdType.INSTRUMENT_ID_TYPE_TICKER, id=ticker, class_code=class_code)
-        return r.instrument.figi
+async def getFIGIByTicker(ticker: str, class_code: str = "TQBR") -> str:
+    return (await getAssetByTicker(ticker)).figi
 
-# asyncio.run(getStockData(FIGIS["sber"]))
-# asyncio.run(findInstrumentByTicker("YDEX", "TQBR"))
+async def getAssetByTicker(ticker: str, class_code: str = "TQBR") -> Instrument:
+    with Client(TOKEN) as client:
+        r = client.instruments.get_instrument_by(id_type=InstrumentIdType.INSTRUMENT_ID_TYPE_TICKER, id=ticker.upper(), class_code=class_code)
+        return r.instrument
+
+
+async def getStockInfoByTicker(ticker: str) -> StatisticResponse:
+    asset = await getAssetByTicker(ticker)
+
+    with Client(TOKEN) as client:
+        request = GetAssetFundamentalsRequest(assets=[asset.asset_uid])
+        r = client.instruments.get_asset_fundamentals(request)
+        return r.fundamentals[0]
+
+
+if __name__ == "__main__":
+    print(asyncio.run(getStockInfoByTicker("SBER")).eps)
