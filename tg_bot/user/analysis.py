@@ -1,3 +1,6 @@
+from datetime import datetime
+from datetime import timedelta
+
 from aiogram import Router, F
 from aiogram.filters import StateFilter
 from aiogram.fsm.storage.base import StorageKey
@@ -5,6 +8,8 @@ from aiogram.types import CallbackQuery, Message, InputFile
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import Command
 from aiogram.types import FSInputFile
+from tinkoff.invest import CandleInterval
+from tinkoff.invest.utils import now
 
 from tg_bot.user.localizations.get_localizations import getText
 from tg_bot.user import keyboards
@@ -18,7 +23,11 @@ analysis_router = Router()
 
 async def handleChosenTicker(msg: Message, state: FSMContext, ticker: str):
     try:
-        data = await tinkoff_api.utilities.getStockDataByTicker(ticker)
+        time_and_open_and_close = await tinkoff_api.utilities.getStockDataByTicker(ticker, now() - timedelta(days=1), CandleInterval.CANDLE_INTERVAL_10_MIN)
+        time_and_close = []
+        for triple in time_and_open_and_close:
+            time_and_close.append((triple[0], triple[1]))
+
     except Exception as ex:
         # raise ex
         text = (await getText("unexpected_ticker", state)).format(
@@ -30,10 +39,10 @@ async def handleChosenTicker(msg: Message, state: FSMContext, ticker: str):
         raise ex
         return
 
-    plot.utilities.renderPlot(data)
+    plot.utilities.renderPlot(time_and_close, ticker)
 
-    media = FSInputFile("test.png")
-    await msg.answer_photo(media, caption=f"showing trading volume for ticker {ticker}")
+    media = FSInputFile("tmp.png")
+    await msg.answer_photo(media, caption=f"showing close prices for ticker {ticker}")
 
 @analysis_router.message(StateFilter(states.Menu.choose_ticker))
 async def handleAnalysisMsg(msg: Message, state: FSMContext):
