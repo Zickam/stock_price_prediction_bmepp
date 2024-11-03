@@ -2,7 +2,7 @@ from datetime import datetime
 
 import matplotlib.pyplot as plt
 
-from analysis.functions import getSMAs
+from analysis.functions import getSMAs, getEMAs
 
 
 def renderPlot(data_close_prices: list[tuple[datetime, float]], ticker: str):
@@ -18,6 +18,7 @@ def renderPlot(data_close_prices: list[tuple[datetime, float]], ticker: str):
 
     window_size = 8
     SMAs = getSMAs(close_prices, window_size)
+    EMAs = getEMAs(close_prices, window_size, 2)
 
     for i in range(len(datetimes) - 1):
         x_segment = datetimes[i:i + 2]
@@ -31,9 +32,10 @@ def renderPlot(data_close_prices: list[tuple[datetime, float]], ticker: str):
         plt.plot(x_segment, y_segment, color=color)
 
     smas_datetimes = datetimes[window_size - 1:len(datetimes)]
-    plt.plot(smas_datetimes, SMAs, label="SMA")
-    # for i in range(len(SMAs), len(datetimes)):
-    #     plt.plot(datetimes[i], SMAs[i - len(SMAs)], color="b")
+    plt.plot(smas_datetimes, SMAs, "-.", label="SMA", linewidth=1, alpha=0.8)
+
+    emas_datetimes = datetimes[window_size - 1:len(datetimes)]
+    plt.plot(emas_datetimes, EMAs, "--", label="EMA", linewidth=1, alpha=0.8)
 
 
     plt.xlabel('datetime')

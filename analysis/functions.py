@@ -16,9 +16,16 @@ def getSMAs(close_prices: list[float], window_size: int) -> list[float]:
 
     return SMAs
 
-def getEMA():
+def getEMAs(close_prices: list[float], window_size: int, smoothing: float) -> list[float]:
     """exponential moving average"""
+    EMAs = [close_prices[window_size] - 1] # maybe set as a first SMA, accordingly to https://tabtrader.com/ru/academy/articles/exponential-moving-average-ema-explained
 
+    for i in range(window_size, len(close_prices)):
+        tmp_smoothing = smoothing / (1 + window_size)
+        EMA_today = close_prices[i] * tmp_smoothing + EMAs[-1] * (1 - tmp_smoothing)
+        EMAs.append(EMA_today)
+
+    return EMAs
 
 
 if __name__ == "__main__":
@@ -30,4 +37,4 @@ if __name__ == "__main__":
     prices = []
     for d in data:
         prices.append(d.close.units + d.close.nano / 10 ** 9)
-    print(getSMAs(prices, 30))
+    print(getEMA(prices, 30, 2))
