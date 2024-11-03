@@ -2,33 +2,45 @@ from datetime import datetime
 
 import matplotlib.pyplot as plt
 
+from analysis.functions import getSMAs
+
 
 def renderPlot(data_close_prices: list[tuple[datetime, float]], ticker: str):
     plt.figure(figsize=(7, 7))
     plt.tick_params(axis='x', rotation=60)
 
-    t = []
-    s = []
+    datetimes = []
+    close_prices = []
 
     for i in range(len(data_close_prices)):
-        t.append(data_close_prices[i][0])
-        s.append(data_close_prices[i][1])
+        datetimes.append(data_close_prices[i][0])
+        close_prices.append(data_close_prices[i][1])
 
-    for i in range(len(t) - 1):
-        x_segment = t[i:i + 2]
-        y_segment = s[i:i + 2]
-        if s[i] < s[i + 1]:
+    window_size = 8
+    SMAs = getSMAs(close_prices, window_size)
+
+    for i in range(len(datetimes) - 1):
+        x_segment = datetimes[i:i + 2]
+        y_segment = close_prices[i:i + 2]
+        if close_prices[i] < close_prices[i + 1]:
             color = "g"
-        elif s[i] > s[i + 1]:
+        elif close_prices[i] > close_prices[i + 1]:
             color = "r"
         else:
             color = "gray"
-        plt.plot(x_segment, y_segment, color=color) #
+        plt.plot(x_segment, y_segment, color=color)
 
-    plt.xlabel('time(Hour)')
+    smas_datetimes = datetimes[window_size - 1:len(datetimes)]
+    plt.plot(smas_datetimes, SMAs, label="SMA")
+    # for i in range(len(SMAs), len(datetimes)):
+    #     plt.plot(datetimes[i], SMAs[i - len(SMAs)], color="b")
+
+
+    plt.xlabel('datetime')
     plt.ylabel("price(RUB)")
     plt.title(ticker.upper())
     plt.grid()
+    plt.legend()
 
     plt.savefig("tmp.png")
 
@@ -42,9 +54,9 @@ if __name__ == "__main__":
 
     ticker = "LKOH"
 
-    time_and_open_and_close = asyncio.run(tinkoff_api.utilities.getStockDataByTicker(ticker, now() - timedelta(days=1),
-                                                                               CandleInterval.CANDLE_INTERVAL_5_MIN))
+    time_and_open_and_close = asyncio.run(tinkoff_api.utilities.getStockDataByTicker(ticker, now() - timedelta(days=30 * 6),
+                                                                               CandleInterval.CANDLE_INTERVAL_DAY))
     time_and_close = []
-    for triple in time_and_open_and_close:
-        time_and_close.append((triple[0], triple[1]))
+    for candle in time_and_open_and_close:
+        time_and_close.append((candle.time, candle.close.units + candle.close.nano / 10 ** 9))
     renderPlot(time_and_close, ticker)

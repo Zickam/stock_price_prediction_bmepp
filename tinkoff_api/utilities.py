@@ -2,7 +2,7 @@ import asyncio
 import os
 from datetime import timedelta, datetime
 
-from tinkoff.invest import AsyncClient, CandleInterval, Client
+from tinkoff.invest import AsyncClient, CandleInterval, Client, Candle, HistoricCandle
 from tinkoff.invest.utils import now
 from tinkoff.invest.constants import INVEST_GRPC_API_SANDBOX
 from tinkoff.invest.async_services import AsyncServices, InstrumentIdType
@@ -25,7 +25,7 @@ async def getStockDataByFIGI(figi: str) -> ...:
 
     return data
 
-async def getStockDataByTicker(ticker: str, from_datetime: datetime, interval: CandleInterval) -> list[tuple[datetime, float, float]]:
+async def getStockDataByTicker(ticker: str, from_datetime: datetime, interval: CandleInterval) -> list[HistoricCandle]:
     """returns list of tuples. Each tuple consists of: time, open_price at this time, close_price at this time"""
 
     data = []
@@ -38,9 +38,10 @@ async def getStockDataByTicker(ticker: str, from_datetime: datetime, interval: C
                 from_=from_datetime, # now() - timedelta(days=1)
                 interval=interval
         ):
-            open_price = candle.open.units + candle.open.nano / 10 ** 9
-            close_price = candle.close.units + candle.close.nano / 10 ** 9
-            data.append((candle.time, open_price, close_price))
+            # open_price = candle.open.units + candle.open.nano / 10 ** 9
+            # close_price = candle.close.units + candle.close.nano / 10 ** 9
+            # data.append((candle.time, open_price, close_price))
+            data.append(candle)
 
     return data
 

@@ -23,10 +23,10 @@ analysis_router = Router()
 
 async def handleChosenTicker(msg: Message, state: FSMContext, ticker: str):
     try:
-        time_and_open_and_close = await tinkoff_api.utilities.getStockDataByTicker(ticker, now() - timedelta(days=1), CandleInterval.CANDLE_INTERVAL_10_MIN)
+        candles = await tinkoff_api.utilities.getStockDataByTicker(ticker, now() - timedelta(days=30 * 6), CandleInterval.CANDLE_INTERVAL_DAY)
         time_and_close = []
-        for triple in time_and_open_and_close:
-            time_and_close.append((triple[0], triple[1]))
+        for candle in candles:
+            time_and_close.append((candle.time, candle.close.units + candle.close.nano / 10 ** 9))
 
     except Exception as ex:
         # raise ex
