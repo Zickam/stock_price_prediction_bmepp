@@ -4,6 +4,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
 import csv
+from constants import *
 
 
 class TickerToNewsURL:
@@ -30,7 +31,7 @@ if __name__ == '__main__':
     ttnu = TickerToNewsURL()
 
     done_tickers = set()
-    with open("company's urls1.csv", mode='r', newline='', encoding='utf-8') as file:
+    with open(COMPANY_URLS_CSV, mode='r', newline='', encoding='utf-8') as file:
         csv_reader = csv.reader(file)
         for row in csv_reader:
             ticker, url = row
@@ -53,7 +54,7 @@ if __name__ == '__main__':
             url = ttnu.get(ticker)
             print(url)
 
-            with open("company's urls1.csv", 'a', newline='', encoding='utf-8') as csvfile:
+            with open(COMPANY_URLS_CSV, 'a', newline='', encoding='utf-8') as csvfile:
                 writer = csv.writer(csvfile)
                 writer.writerow([ticker, url])
     ttnu.quit()

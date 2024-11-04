@@ -22,6 +22,6 @@ def get_request(url):
     return requests.get(url, headers=HEADERS)
 
 
-with open('page.html', 'w', encoding='utf-8') as file:
+with open('page21342.html', 'w', encoding='utf-8') as file:
     text = get_request(url).text
     file.write(text)

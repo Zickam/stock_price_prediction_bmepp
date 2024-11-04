@@ -32,6 +32,6 @@ def clean_string(s):
 
 with open('tickers.csv', 'w', newline='', encoding='utf-8') as csvfile:
     writer = csv.writer(csvfile)
-    writer.writerow(['Ticker', 'Name'])  # Заголовки столбцов
+    writer.writerow(['Ticker', 'Name'])
     for ticker, name in ticker_dict.items():
         writer.writerow([clean_string(ticker), clean_string(name)])
