@@ -1,5 +1,5 @@
 import requests
-import time
+
 HEADERS = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:98.0) Gecko/20100101 Firefox/98.0",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
@@ -22,6 +22,6 @@ def get_request(url):
     return requests.get(url, headers=HEADERS)
 
 
-with open('page.html', 'w', encoding='utf-8') as file:
+with open('page21342.html', 'w', encoding='utf-8') as file:
     text = get_request(url).text
     file.write(text)
