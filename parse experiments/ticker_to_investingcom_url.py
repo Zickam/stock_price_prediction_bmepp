@@ -38,7 +38,7 @@ if __name__ == '__main__':
             done_tickers.add(ticker)
     print('done tickers:', done_tickers)
 
-    with open('tickers.csv', mode='r', newline='', encoding='utf-8') as file:
+    with open('csv_files/tickers.csv', mode='r', newline='', encoding='utf-8') as file:
         csv_reader = csv.reader(file)
         header = True
         for row in csv_reader:

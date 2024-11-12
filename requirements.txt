@@ -34,3 +34,5 @@ tinkoff==0.1.1
 tinkoff-investments==0.2.0b107
 typing_extensions==4.12.2
 yarl==1.15.1
+seleniumbase==4.32.9
+selenium==4.26.1
