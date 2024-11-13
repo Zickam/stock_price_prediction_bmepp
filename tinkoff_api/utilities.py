@@ -26,9 +26,7 @@ async def getStockDataByFIGI(figi: str) -> ...:
 
     return data
 
-async def getStockDataByTicker(ticker: str, from_datetime: datetime, interval: CandleInterval) -> list[HistoricCandle]:
-    """returns list of tuples. Each tuple consists of: time, open_price at this time, close_price at this time"""
-
+async def getStockDataByTicker(ticker: str, from_datetime: datetime, to_datetime: datetime, interval: CandleInterval) -> list[HistoricCandle]:
     data = []
 
     figi = await getFIGIByTicker(ticker)
@@ -37,18 +35,16 @@ async def getStockDataByTicker(ticker: str, from_datetime: datetime, interval: C
         async for candle in client.get_all_candles(
                 figi=figi,
                 from_=from_datetime, # now() - timedelta(days=1)
+                to=to_datetime,
                 interval=interval
         ):
-            # open_price = candle.open.units + candle.open.nano / 10 ** 9
-            # close_price = candle.close.units + candle.close.nano / 10 ** 9
-            # data.append((candle.time, open_price, close_price))
             data.append(candle)
 
     return data
 
 
 async def getFIGIByTicker(ticker: str, class_code: str = "TQBR") -> str:
-    return (await getAssetByTicker(ticker)).figi
+    return (await getAssetByTicker(ticker, class_code)).figi
 
 async def getAssetByTicker(ticker: str, class_code: str = "TQBR") -> Instrument:
     with Client(TOKEN) as client:
@@ -66,4 +62,4 @@ async def getStockInfoByTicker(ticker: str) -> StatisticResponse:
 
 
 if __name__ == "__main__":
-    print(asyncio.run(getStockInfoByTicker("SBER")).eps)
+    print(asyncio.run(getStockInfoByTicker("SBER")))

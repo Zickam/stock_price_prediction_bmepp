@@ -11,7 +11,7 @@ from aiogram.types import FSInputFile
 from tinkoff.invest import CandleInterval
 from tinkoff.invest.utils import now
 
-from analysis.functions import getSimplePriceChangeCoefficient
+from analysis.functions import getSimplePriceChangeCoefficient, getSimplePriceChangeCoefficientByTicker
 from tg_bot.user.localizations.get_localizations import getText
 from tg_bot.user import keyboards
 from tg_bot.user import filters
@@ -23,9 +23,12 @@ from tinkoff_api.utilities import getAssetByTicker, getStockDataByTicker, getSto
 
 analysis_router = Router()
 
+days = 30 * 6
+interval = CandleInterval.CANDLE_INTERVAL_DAY
+
 async def handleChosenTicker(msg: Message, state: FSMContext, ticker: str):
     try:
-        candles = await tinkoff_api.utilities.getStockDataByTicker(ticker, now() - timedelta(days=30 * 6), CandleInterval.CANDLE_INTERVAL_DAY)
+        candles = await tinkoff_api.utilities.getStockDataByTicker(ticker, now() - timedelta(days=days), now(), interval)
         time_and_close = []
         for candle in candles:
             time_and_close.append((candle.time, candle.close.units + candle.close.nano / 10 ** 9))
@@ -45,17 +48,11 @@ async def handleChosenTicker(msg: Message, state: FSMContext, ticker: str):
 
     media = FSInputFile("tmp.png")
 
-    price_half_year_ago = candles[0].close.units + candles[0].close.nano / 10 ** 9
-    price_now = candles[-1].close.units + candles[-1].close.nano / 10 ** 9
-
-    price_change = getSimplePriceChangeCoefficient(
-        price_half_year_ago,
-        price_now
-   )
+    price_change = await getSimplePriceChangeCoefficientByTicker(ticker, now() - timedelta(days=days), now(), interval)
 
     await msg.answer_photo(
         media,
-        caption=f"*{ticker.upper()}* stock price changed by *{round(price_change * 100)}%*\nFrom *{price_half_year_ago}RUB*\nTo *{price_now}RUB*",
+        caption=f"*{ticker.upper()}* stock price changed by *{round(price_change * 100)}%*",
         parse_mode="Markdown"
     )
 
