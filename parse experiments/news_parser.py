@@ -1,4 +1,3 @@
-import datetime
 from constants import PICKLE_LINKS_DIRECTORY, NEWS_CSV_DIRECTORY
 import pickle
 import os
@@ -33,19 +32,18 @@ class NewsLoader:
             file.seek(0, 2)
             writer = csv.DictWriter(file, fieldnames=["Title", "Text", "Time", "Url"])
 
-            for url in not_existing_urls:
+            for i, url in enumerate(not_existing_urls):
                 title, time, article_text = self.scrape_article(url)
 
                 if print_progress:
+                    print('progress:', i, 'of', len(not_existing_urls))
                     print(url)
                     print(title)
                     print(article_text)
                     print(time)
-                row = {"Title": title, "Text": article_text, "Time": "2024-11-12 13:00",
-                 "Url": url}
+                row = {"Title": title, "Text": article_text, "Time": "2024-11-12 13:00", "Url": url}
                 writer.writerow(row)
                 file.flush()
-
 
     def scrape_article(self, url):
         self.driver.get(url)
@@ -74,5 +72,6 @@ class NewsLoader:
 
         return title, time, article_text.strip()
 
-newsloader = NewsLoader('MGNT')
+
+newsloader = NewsLoader('BELU')
 newsloader.load(True)

@@ -60,9 +60,6 @@ class TickerToNewsList:
                     links.append(href)
                 i += 1
 
-
-
-
         with open(PICKLE_LINKS_DIRECTORY + f'/{ticker}.pickle', 'wb') as file:
             pickle.dump(links, file)
 
