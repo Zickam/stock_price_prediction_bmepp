@@ -8,12 +8,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-class NewsArticle:
-    def __init__(self, title: str, text: str, published_time: datetime.datetime):
-        self.title = title
-        self.text = text
-        self.published_time = published_time
-
 
 class NewsLoader:
     def __init__(self, ticker: str):
@@ -26,7 +20,7 @@ class NewsLoader:
         self.csv_file_path = f'{NEWS_CSV_DIRECTORY}/{self.ticker}.csv'
         if not os.path.isfile(self.csv_file_path):
             with open(self.csv_file_path, mode='w', newline='', encoding='utf-8') as file:
-                fieldnames = ['Time', 'Title', 'Text', 'Url']
+                fieldnames = ["Title", "Text", "Time", "Url"]
                 writer = csv.DictWriter(file, fieldnames=fieldnames)
                 writer.writeheader()
 
@@ -47,6 +41,11 @@ class NewsLoader:
                     print(title)
                     print(article_text)
                     print(time)
+                row = {"Title": title, "Text": article_text, "Time": "2024-11-12 13:00",
+                 "Url": url}
+                writer.writerow(row)
+                file.flush()
+
 
     def scrape_article(self, url):
         self.driver.get(url)
@@ -54,6 +53,8 @@ class NewsLoader:
         time = self.wait.until(EC.presence_of_element_located(
             (By.CSS_SELECTOR, 'div .mt-2.flex.flex-col.gap-2.text-xs.md\\:mt-2\\.5.md\\:gap-2\\.5')
         ))
+        time = time.find_element(By.CSS_SELECTOR, 'span').text
+        time = time.replace('Опубликовано ', '')
         separator_div = self.wait.until(EC.presence_of_element_located(
             (By.CSS_SELECTOR, "div.-mb-2.mt-12.h-0\\.5.w-\\[250px\\].bg-gradient-pro-separator")
         ))

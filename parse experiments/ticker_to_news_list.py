@@ -69,4 +69,4 @@ class TickerToNewsList:
 
 if __name__ == '__main__':
     ttnl = TickerToNewsList()
-    ttnl.get_to_pickle('MGNT', print_progress=True)
+    ttnl.get_to_pickle('BELU', print_progress=True)
