@@ -4,6 +4,11 @@ from constants import *
 import os
 
 
+def value_from_stock_market(ticker: str, datetime: str):
+    # datetime looks like: "21.10.2024, 12:31"
+    return random.random()
+
+
 def concat(print_progress=False):
     database_name = 'database.csv'
     fieldnames = ['Title', 'Text', 'Time', 'Url', 'Value']
@@ -27,8 +32,7 @@ def concat(print_progress=False):
                 if print_progress:
                     print('working with ticker', ticker, 'url:', url)
 
-                # Insert value from stock market here
-                value = random.random()
+                value = value_from_stock_market(ticker, time)
 
                 with open(database_name, mode='a', newline='', encoding='utf-8') as file1:
                     writer = csv.DictWriter(file1, fieldnames=fieldnames)

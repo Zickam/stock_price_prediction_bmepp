@@ -6,12 +6,13 @@ from seleniumbase import Driver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+import time as time_lib
 
 
 class NewsLoader:
     def __init__(self, ticker: str):
         self.ticker = ticker.upper()
-        self.driver = Driver(uc=True)
+        self.driver = Driver(uc=True, headless=True)
         self.wait = WebDriverWait(self.driver, 5)
         with open(f'{PICKLE_LINKS_DIRECTORY}/{self.ticker}.pickle', 'rb') as file:
             self.urls_list = pickle.load(file)
@@ -24,6 +25,7 @@ class NewsLoader:
                 writer.writeheader()
 
     def load(self, print_progress: bool = False):
+        start = time_lib.time()
         with open(self.csv_file_path, mode='r+', newline='', encoding='utf-8') as file:
             reader = csv.DictReader(file)
             existing_urls = {row["Url"] for row in reader}
@@ -36,12 +38,13 @@ class NewsLoader:
                 title, time, article_text = self.scrape_article(url)
 
                 if print_progress:
-                    print('progress:', i, 'of', len(not_existing_urls))
-                    print(url)
-                    print(title)
-                    print(article_text)
-                    print(time)
-                row = {"Title": title, "Text": article_text, "Time": "2024-11-12 13:00", "Url": url}
+                    time_passed = time_lib.time() - start
+                    print(self.ticker,
+                          f'| Progress: {i+1} of {len(not_existing_urls)}',
+                          f'| Passed time: {round(time_passed)}s',
+                          '|', url)
+
+                row = {"Title": title, "Text": article_text, "Time": time, "Url": url}
                 writer.writerow(row)
                 file.flush()
 
@@ -73,5 +76,13 @@ class NewsLoader:
         return title, time, article_text.strip()
 
 
-newsloader = NewsLoader('BELU')
-newsloader.load(True)
+def load_news_from_all_pickle_urls():
+    tickers_with_pickle = [filename.split('.')[0] for filename in os.listdir(PICKLE_LINKS_DIRECTORY)]
+    for ticker in tickers_with_pickle:
+        print('INIT NewsLoader for', ticker)
+        news_loader = NewsLoader(ticker)
+        news_loader.load(True)
+
+
+if __name__ == '__main__':
+    load_news_from_all_pickle_urls()
