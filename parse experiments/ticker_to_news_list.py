@@ -60,13 +60,10 @@ class TickerToNewsList:
                     links.append(href)
                 i += 1
 
-
-
-
         with open(PICKLE_LINKS_DIRECTORY + f'/{ticker}.pickle', 'wb') as file:
             pickle.dump(links, file)
 
 
 if __name__ == '__main__':
     ttnl = TickerToNewsList()
-    ttnl.get_to_pickle('MGNT', print_progress=True)
+    ttnl.get_to_pickle('BELU', print_progress=True)
