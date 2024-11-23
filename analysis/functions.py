@@ -2,7 +2,7 @@ import datetime
 
 from tinkoff.invest import CandleInterval
 
-from tinkoff_api.utilities import getStockDataByTicker
+from tinkoff_api.utilities import getStockDataByTicker, getStockCostByTicker
 
 
 def getSimplePriceChangeCoefficient(price_a, price_b) -> float:
@@ -11,13 +11,13 @@ def getSimplePriceChangeCoefficient(price_a, price_b) -> float:
 async def getSimplePriceChangeCoefficientByTicker(
         ticker: str,
         datetime_a,
-        datetime_b,
-        intervals: CandleInterval
+        datetime_b
 ) -> float:
-    candles = await getStockDataByTicker(ticker, datetime_a, datetime_b, intervals)
+    cost_a = await getStockCostByTicker(ticker, datetime_a)
+    cost_b = await getStockCostByTicker(ticker, datetime_b)
     return getSimplePriceChangeCoefficient(
-        candles[0].open.units + candles[0].open.nano / 10 ** 9,
-        candles[-1].close.units + candles[-1].close.nano / 10 ** 9
+        cost_a,
+        cost_b
     )
 
 def getSMAs(close_prices: list[float], window_size: int) -> list[float]:
@@ -61,8 +61,8 @@ if __name__ == "__main__":
     import asyncio
     print(asyncio.run(getSimplePriceChangeCoefficientByTicker(
         "LKOH",
-        datetime.datetime.now(tz=datetime.timezone.utc) - datetime.timedelta(days=1),
+        datetime.datetime.now(tz=datetime.timezone.utc) - datetime.timedelta(days=180),
         datetime.datetime.now(tz=datetime.timezone.utc),
-        CandleInterval.CANDLE_INTERVAL_HOUR)
+        CandleInterval.CANDLE_INTERVAL_DAY)
     ))
     # print(getSimplePriceChangeCoefficient(100, 50))

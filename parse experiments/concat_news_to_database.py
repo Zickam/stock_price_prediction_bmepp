@@ -1,12 +1,25 @@
+import datetime
 import random
 import csv
 from constants import *
 import os
+import asyncio
+import datetime
+
+from tinkoff.invest.utils import now
+from tinkoff.invest.utils import CandleInterval
+
+from analysis.functions import getSimplePriceChangeCoefficientByTicker
 
 
-def value_from_stock_market(ticker: str, datetime: str):
-    # datetime looks like: "21.10.2024, 12:31"
-    return random.random()
+
+def value_from_stock_market(ticker: str, datetime_str: str):
+    """datetime looks like: "21.10.2024, 12:31"""
+
+    _datetime = datetime.datetime.strptime(datetime_str, "%d.%m.%Y, %H:%M")
+    _datetime = _datetime.replace(tzinfo=datetime.timezone.utc)
+
+    return asyncio.run(getSimplePriceChangeCoefficientByTicker(ticker, _datetime, now()))
 
 
 def concat(print_progress=False):
@@ -41,4 +54,5 @@ def concat(print_progress=False):
 
 
 if __name__ == '__main__':
-    concat(True)
+    # concat(True)
+    print(value_from_stock_market("VKCO", "21.10.2024, 12:31"))
