@@ -1,3 +1,4 @@
+import math
 import datetime
 
 from tinkoff.invest import CandleInterval
@@ -6,7 +7,9 @@ from tinkoff_api.utilities import getStockDataByTicker, getStockCostByTicker
 
 
 def getSimplePriceChangeCoefficient(price_a, price_b) -> float:
-    return (price_b - price_a) / price_a
+    percent_change = (price_b - price_a) / price_a
+    normalized_change = math.tanh(percent_change)
+    return normalized_change
 
 async def getSimplePriceChangeCoefficientByTicker(
         ticker: str,
@@ -48,7 +51,7 @@ if __name__ == "__main__":
     # from tinkoff_api.utilities import getStockDataByTicker
     # from tinkoff.invest.utils import now
     # from datetime import timedelta
-    # import asyncio
+    import asyncio
     # data = asyncio.run(getStockDataByTicker("LKOH", now() - timedelta(days=30 * 6), CandleInterval.CANDLE_INTERVAL_DAY))
     # prices = []
     # for d in data:
@@ -58,11 +61,14 @@ if __name__ == "__main__":
     # stock_info = asyncio.run(getStockInfoByTicker("lkoh"))
     # print(stock_info)
     # calculateLynchFairValue(3312, stock_info)
-    import asyncio
-    print(asyncio.run(getSimplePriceChangeCoefficientByTicker(
-        "LKOH",
-        datetime.datetime.now(tz=datetime.timezone.utc) - datetime.timedelta(days=180),
-        datetime.datetime.now(tz=datetime.timezone.utc),
-        CandleInterval.CANDLE_INTERVAL_DAY)
-    ))
+    # import asyncio
+    # print(asyncio.run(getSimplePriceChangeCoefficientByTicker(
+    #     "LKOH",
+    #     datetime.datetime.now(tz=datetime.timezone.utc) - datetime.timedelta(days=180),
+    #     datetime.datetime.now(tz=datetime.timezone.utc),
+    #     CandleInterval.CANDLE_INTERVAL_DAY)
+    # ))
     # print(getSimplePriceChangeCoefficient(100, 50))
+    a, b = 30, 40
+    print(getSimplePriceChangeCoefficient(a, b))
+    print(getSimplePriceChangeCoefficient(b, a))
