@@ -27,6 +27,7 @@ async def getStockDataByFIGI(figi: str) -> ...:
     return data
 
 async def getStockDataByTicker(ticker: str, from_datetime: datetime, to_datetime: datetime, interval: CandleInterval) -> list[HistoricCandle]:
+    """for ranges"""
     data = []
 
     figi = await getFIGIByTicker(ticker)
@@ -42,6 +43,16 @@ async def getStockDataByTicker(ticker: str, from_datetime: datetime, to_datetime
 
     return data
 
+async def getStockCostByTicker(ticker: str, _datetime: datetime) -> float:
+    figi = await getFIGIByTicker(ticker)
+    async with AsyncClient(TOKEN, target=INVEST_GRPC_API_SANDBOX) as client:
+        async for candle in client.get_all_candles(
+                figi=figi,
+                from_=_datetime - timedelta(minutes=3), # due to delay of stock data for now()
+                to=_datetime - timedelta(minutes=2), # due to delay of stock data for now()
+                interval=CandleInterval.CANDLE_INTERVAL_1_MIN
+        ):
+            return candle.close.units + candle.close.nano / 10 ** 9
 
 async def getFIGIByTicker(ticker: str, class_code: str = "TQBR") -> str:
     return (await getAssetByTicker(ticker, class_code)).figi
@@ -62,4 +73,5 @@ async def getStockInfoByTicker(ticker: str) -> StatisticResponse:
 
 
 if __name__ == "__main__":
-    print(asyncio.run(getStockInfoByTicker("SBER")))
+    # print(asyncio.run(getStockInfoByTicker("SBER")))
+    print(asyncio.run(getStockCostByTicker("VKCO", now())))
