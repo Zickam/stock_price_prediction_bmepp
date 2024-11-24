@@ -1,8 +1,10 @@
+import logging
 import os
 import uuid
 from pathlib import Path
 from dataclasses import dataclass
 from datetime import timedelta
+import re
 
 from aiogram.fsm.context import FSMContext
 from tinkoff.invest import CandleInterval
@@ -12,6 +14,7 @@ import plot
 import tinkoff_api
 from analysis.functions import getSimplePriceChangeByTicker
 from tg_bot.user.localizations.get_localizations import getText
+from tinkoff_api.utilities import getStockCostByTicker, getStockDataByTicker
 
 tickers = {'ABIO': "'Артген'", 'ABRD': 'Абрау-Дюрсо', 'AFKS': "АФК 'Система'", 'AFLT': 'Аэрофлот-росс.авиалинао',
            'AKRN': 'Акрон', 'ALRS': 'АЛРОСА', 'AMEZ': 'Ашинский метзавод', 'APRI': 'АПРИ',
@@ -95,7 +98,12 @@ class ReportMaker:
             now()
         )
 
-        return f"*{ticker.upper()}* stock price changed by *{round(price_change * 100)}%*"
+        price_month_ago = await getStockCostByTicker(ticker, now() - timedelta(days=days))
+        price_now = await getStockCostByTicker(ticker)
+
+        return (f"*{ticker.upper()}* stock price changed by *{round(price_change * 100)}%*\n"
+                f"Cost {days} days ago was *{price_month_ago}* RUB\n"
+                f"Now its cost is *{price_now}* RUB")
 
     @staticmethod
     async def _getReportChart(
@@ -135,7 +143,15 @@ class ReportMaker:
             )
             return Report(False, report_status)
 
-        img_path = await ReportMaker._getReportChart(ticker, days, interval)
-        text = await ReportMaker._getReportText(ticker, days)
+        try:
+            img_path = await ReportMaker._getReportChart(ticker, days, interval)
+            text = await ReportMaker._getReportText(ticker, days)
 
-        return Report(True, text=text, photos=[img_path])
+            return Report(True, text=text, photos=[img_path])
+
+        except Exception as ex:
+            import urllib.parse
+            text = urllib.parse.quote(str(ex), safe='/', encoding=None, errors=None)
+            logging.error(ex)
+            return Report(False, f"Unhandled ERROR: {text}")
+

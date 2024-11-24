@@ -50,20 +50,32 @@ async def getStockDataByTicker(
 
     return data
 
+
+intervals = [
+    CandleInterval.CANDLE_INTERVAL_1_MIN,
+    CandleInterval.CANDLE_INTERVAL_2_MIN,
+    CandleInterval.CANDLE_INTERVAL_3_MIN,
+    CandleInterval.CANDLE_INTERVAL_5_MIN,
+    CandleInterval.CANDLE_INTERVAL_10_MIN,
+    CandleInterval.CANDLE_INTERVAL_15_MIN,
+    CandleInterval.CANDLE_INTERVAL_30_MIN,
+    CandleInterval.CANDLE_INTERVAL_HOUR,
+]
+
 async def getStockCostByTicker(ticker: str, _datetime: datetime = None) -> float:
     if _datetime is None:
         _datetime = now()
-    logging.info(_datetime - timedelta(minutes=3))
-    logging.info(_datetime - timedelta(minutes=2))
+
     figi = await getFIGIByTicker(ticker)
     async with AsyncClient(TOKEN, target=INVEST_GRPC_API_SANDBOX) as client:
-        async for candle in client.get_all_candles(
-                figi=figi,
-                from_=_datetime - timedelta(minutes=3), # due to delay of stock data fetching through tinkoff api
-                to=_datetime - timedelta(minutes=2), # due to delay of stock data fetching through tinkoff api
-                interval=CandleInterval.CANDLE_INTERVAL_1_MIN
-        ):
-            return candle.close.units + candle.close.nano / 10 ** 9
+        for interval in intervals:
+            async for candle in client.get_all_candles(
+                    figi=figi,
+                    from_=_datetime - timedelta(minutes=1), # due to delay of stock data fetching through tinkoff api
+                    # to=_datetime - timedelta(minutes=1), # due to delay of stock data fetching through tinkoff api
+                    interval=interval
+            ):
+                return candle.close.units + candle.close.nano / 10 ** 9
 
 async def getFIGIByTicker(ticker: str, class_code: str = "TQBR") -> str:
     return (await getAssetByTicker(ticker, class_code)).figi
@@ -85,4 +97,5 @@ async def getStockInfoByTicker(ticker: str) -> StatisticResponse:
 
 if __name__ == "__main__":
     # print(asyncio.run(getStockInfoByTicker("SBER")))
-    print(asyncio.run(getStockCostByTicker("VKCO", now())))
+    # print(asyncio.run(getStockCostByTicker("VKCO", now())))
+    ...
