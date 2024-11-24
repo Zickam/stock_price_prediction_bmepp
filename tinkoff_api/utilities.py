@@ -1,6 +1,7 @@
 import asyncio
 import os
 from datetime import timedelta, datetime
+from main import logging
 
 from tinkoff.invest import AsyncClient, CandleInterval, Client, Candle, HistoricCandle, GetAssetFundamentalsResponse, \
     GetAssetFundamentalsRequest, InstrumentResponse, Instrument, StatisticResponse
@@ -26,7 +27,13 @@ async def getStockDataByFIGI(figi: str) -> ...:
 
     return data
 
-async def getStockDataByTicker(ticker: str, from_datetime: datetime, to_datetime: datetime, interval: CandleInterval) -> list[HistoricCandle]:
+
+async def getStockDataByTicker(
+        ticker: str,
+        from_datetime: datetime,
+        to_datetime: datetime,
+        interval: CandleInterval
+) -> list[HistoricCandle]:
     """for ranges"""
     data = []
 
@@ -35,7 +42,7 @@ async def getStockDataByTicker(ticker: str, from_datetime: datetime, to_datetime
     async with AsyncClient(TOKEN, target=INVEST_GRPC_API_SANDBOX) as client:
         async for candle in client.get_all_candles(
                 figi=figi,
-                from_=from_datetime, # now() - timedelta(days=1)
+                from_=from_datetime,  # now() - timedelta(days=1)
                 to=to_datetime,
                 interval=interval
         ):
@@ -43,13 +50,17 @@ async def getStockDataByTicker(ticker: str, from_datetime: datetime, to_datetime
 
     return data
 
-async def getStockCostByTicker(ticker: str, _datetime: datetime) -> float:
+async def getStockCostByTicker(ticker: str, _datetime: datetime = None) -> float:
+    if _datetime is None:
+        _datetime = now()
+    logging.info(_datetime - timedelta(minutes=3))
+    logging.info(_datetime - timedelta(minutes=2))
     figi = await getFIGIByTicker(ticker)
     async with AsyncClient(TOKEN, target=INVEST_GRPC_API_SANDBOX) as client:
         async for candle in client.get_all_candles(
                 figi=figi,
-                from_=_datetime - timedelta(minutes=3), # due to delay of stock data for now()
-                to=_datetime - timedelta(minutes=2), # due to delay of stock data for now()
+                from_=_datetime - timedelta(minutes=3), # due to delay of stock data fetching through tinkoff api
+                to=_datetime - timedelta(minutes=2), # due to delay of stock data fetching through tinkoff api
                 interval=CandleInterval.CANDLE_INTERVAL_1_MIN
         ):
             return candle.close.units + candle.close.nano / 10 ** 9
