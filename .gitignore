@@ -2,3 +2,4 @@
 **/.venv/
 **/.idea/
 .env
+tg_bot/images/*

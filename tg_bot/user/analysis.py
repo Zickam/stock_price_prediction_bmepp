@@ -33,7 +33,7 @@ interval = CandleInterval.CANDLE_INTERVAL_DAY
 async def handleChosenTicker(msg: Message, state: FSMContext, ticker: str):
     report = await ReportMaker.makeReport(state, ticker)
     if not report.status:
-        await msg.answer(report.status_description)
+        await msg.answer(report.status_description, parse_mode="HTML")
         await state.set_state(state=None)
         await showAnalysisMsg(msg, state)
         return
