@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from datetime import timedelta
 
@@ -11,7 +12,6 @@ from aiogram.types import FSInputFile
 from tinkoff.invest import CandleInterval
 from tinkoff.invest.utils import now
 
-from analysis.functions import getSimplePriceChangeCoefficient, getSimplePriceChangeCoefficientByTicker
 from tg_bot.user.localizations.get_localizations import getText
 from tg_bot.user import keyboards
 from tg_bot.user import filters
@@ -20,6 +20,10 @@ from tg_bot.user.menu import showAnalysisMsg
 import tinkoff_api
 import plot
 from tinkoff_api.utilities import getAssetByTicker, getStockDataByTicker, getStockInfoByTicker
+from tg_bot.report_maker import ReportMaker
+from aiogram.utils.media_group import MediaGroupBuilder
+
+
 
 analysis_router = Router()
 
@@ -27,34 +31,23 @@ days = 30 * 6
 interval = CandleInterval.CANDLE_INTERVAL_DAY
 
 async def handleChosenTicker(msg: Message, state: FSMContext, ticker: str):
-    try:
-        candles = await tinkoff_api.utilities.getStockDataByTicker(ticker, now() - timedelta(days=days), now(), interval)
-        time_and_close = []
-        for candle in candles:
-            time_and_close.append((candle.time, candle.close.units + candle.close.nano / 10 ** 9))
-
-    except Exception as ex:
-        # raise ex
-        text = (await getText("unexpected_ticker", state)).format(
-            ticker=ticker
-        )
-        await msg.answer(text)
+    report = await ReportMaker.makeReport(state, ticker)
+    if not report.status:
+        await msg.answer(report.status_description)
         await state.set_state(state=None)
         await showAnalysisMsg(msg, state)
-        raise ex
         return
 
-    plot.utilities.renderPlot(time_and_close, ticker)
+    media_group = MediaGroupBuilder(caption=report.text)
 
-    media = FSInputFile("tmp.png")
+    for photo in report.photos:
+        media = FSInputFile(photo)
+        media_group.add_photo(type="photo", media=media, parse_mode="Markdown")
 
-    price_change = await getSimplePriceChangeCoefficientByTicker(ticker, now() - timedelta(days=days), now(), interval)
+    await msg.answer_media_group(media=media_group.build())
 
-    await msg.answer_photo(
-        media,
-        caption=f"*{ticker.upper()}* stock price changed by *{round(price_change * 100)}%*",
-        parse_mode="Markdown"
-    )
+    await report.clear()
+
 
 @analysis_router.message(StateFilter(states.Menu.choose_ticker))
 async def handleAnalysisMsg(msg: Message, state: FSMContext):

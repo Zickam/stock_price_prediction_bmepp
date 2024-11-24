@@ -5,20 +5,32 @@ from tinkoff.invest import CandleInterval
 
 from tinkoff_api.utilities import getStockDataByTicker, getStockCostByTicker
 
+def getSimplePriceChange(price_a: float, price_b: float) -> float:
+    return (price_b - price_a) / price_a
 
-def getSimplePriceChangeCoefficient(price_a, price_b) -> float:
-    percent_change = (price_b - price_a) / price_a
-    normalized_change = math.tanh(percent_change)
-    return normalized_change
+def getTanHNormalizedPriceChange(price_a: float, price_b: float) -> float:
+    return math.tanh(getSimplePriceChange(price_a, price_b))
 
-async def getSimplePriceChangeCoefficientByTicker(
+async def getTanHNormalizedPriceChangeByTicker(
         ticker: str,
-        datetime_a,
-        datetime_b
+        datetime_a: datetime.datetime,
+        datetime_b: datetime.datetime
 ) -> float:
     cost_a = await getStockCostByTicker(ticker, datetime_a)
     cost_b = await getStockCostByTicker(ticker, datetime_b)
-    return getSimplePriceChangeCoefficient(
+    return getTanHNormalizedPriceChange(
+        cost_a,
+        cost_b
+    )
+
+async def getSimplePriceChangeByTicker(
+        ticker: str,
+        datetime_a: datetime.datetime,
+        datetime_b: datetime.datetime
+) -> float:
+    cost_a = await getStockCostByTicker(ticker, datetime_a)
+    cost_b = await getStockCostByTicker(ticker, datetime_b)
+    return getSimplePriceChange(
         cost_a,
         cost_b
     )

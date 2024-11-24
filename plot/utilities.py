@@ -1,11 +1,16 @@
 from datetime import datetime
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 
 from analysis.functions import getSMAs, getEMAs
 
 
-def renderPlot(data_close_prices: list[tuple[datetime, float]], ticker: str):
+def renderPlot(
+        data_close_prices: list[tuple[datetime, float]],
+        ticker: str,
+        img_path: Path
+):
     plt.figure(figsize=(7, 7))
     plt.tick_params(axis='x', rotation=60)
 
@@ -43,7 +48,7 @@ def renderPlot(data_close_prices: list[tuple[datetime, float]], ticker: str):
     plt.grid()
     plt.legend()
 
-    plt.savefig("tmp.png")
+    plt.savefig(img_path)
 
 if __name__ == "__main__":
     import asyncio
