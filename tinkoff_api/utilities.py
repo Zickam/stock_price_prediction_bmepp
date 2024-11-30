@@ -1,7 +1,7 @@
 import asyncio
 import os
 from datetime import timedelta, datetime
-from main import logging
+# from main import logging
 
 from tinkoff.invest import AsyncClient, CandleInterval, Client, Candle, HistoricCandle, GetAssetFundamentalsResponse, \
     GetAssetFundamentalsRequest, InstrumentResponse, Instrument, StatisticResponse
@@ -71,7 +71,7 @@ async def getStockCostByTicker(ticker: str, _datetime: datetime = None) -> float
         for interval in intervals:
             async for candle in client.get_all_candles(
                     figi=figi,
-                    from_=_datetime - timedelta(minutes=1), # due to delay of stock data fetching through tinkoff api
+                    from_=_datetime - timedelta(minutes=2), # due to delay of stock data fetching through tinkoff api
                     # to=_datetime - timedelta(minutes=1), # due to delay of stock data fetching through tinkoff api
                     interval=interval
             ):
