@@ -5,54 +5,72 @@ from constants import *
 import os
 import asyncio
 import datetime
+import threading
 
 from tinkoff.invest.utils import now
 from tinkoff.invest.utils import CandleInterval
 
-from analysis.functions import getTanHNormalizedPriceChangeByTicker
+from analysis.functions_sync import getTanHNormalizedPriceChangeByTicker
 
+PRINT_PROGRESS = True
+DATABASE_NAME = 'database.csv'
+FIELDNAMES = ['Title', 'Text', 'Time', 'Url', 'Value']
 
 def value_from_stock_market(ticker: str, datetime_str: str):
     """datetime looks like: "21.10.2024, 12:31"""
-    # return 1
 
     _datetime = datetime.datetime.strptime(datetime_str, "%d.%m.%Y, %H:%M")
     _datetime = _datetime.replace(tzinfo=datetime.timezone.utc)
 
-    return asyncio.run(getTanHNormalizedPriceChangeByTicker(ticker, _datetime, now()))
+    return getTanHNormalizedPriceChangeByTicker(ticker, _datetime, now())
 
+def _concat(csv_path: str):
+    rows = []
+    file1 = open(DATABASE_NAME, mode='a', newline='', encoding='utf-8')
+    writer = csv.DictWriter(file1, fieldnames=FIELDNAMES)
+    with open(csv_path, mode='r', newline='', encoding='utf-8') as file:
+        lines_amount = len(file.readlines())
+        file.seek(0)
+        reader = csv.DictReader(file)
+        ticker = csv_path.split('/')[-1].split('.')[0]
 
-def concat(print_progress=False):
-    database_name = 'database.csv'
-    fieldnames = ['Title', 'Text', 'Time', 'Url', 'Value']
+        for i, row in enumerate(reader):
+            title = row['Title']
+            text = row['Text']
+            time = row['Time']
+            url = row['Url']
+            if PRINT_PROGRESS:
+                print(f"{ticker} is handled for {round(i / lines_amount * 100, 2)}%")
+                # print('working with ticker', ticker, 'url:', url)
 
-    with open(database_name, mode='w', newline='', encoding='utf-8') as file:
-        writer = csv.DictWriter(file, fieldnames=fieldnames)
+            value = value_from_stock_market(ticker, time)
+
+            writer.writerow({"Title": title, "Text": text, "Time": time, "Url": url, "Value": value})
+
+    print(ticker, "has finished processing")
+
+def concat():
+
+    with open(DATABASE_NAME, mode='w', newline='', encoding='utf-8') as file:
+        writer = csv.DictWriter(file, fieldnames=FIELDNAMES)
         writer.writeheader()
 
     csv_list = [NEWS_CSV_DIRECTORY + '/' + filename for filename in os.listdir(NEWS_CSV_DIRECTORY)]
 
+    threads = []
     for csv_path in csv_list:
-        with open(csv_path, mode='r', newline='', encoding='utf-8') as file:
-            reader = csv.DictReader(file)
-            ticker = csv_path.split('/')[-1].split('.')[0]
+        thread = threading.Thread(target=_concat, args=(csv_path, ))
+        threads.append(thread)
+        # thread.start()
+        # thread.join()
 
-            for row in reader:
-                title = row['Title']
-                text = row['Text']
-                time = row['Time']
-                url = row['Url']
-                if print_progress:
-                    print('working with ticker', ticker, 'url:', url)
+    for thread in threads:
+        thread.start()
 
-                value = value_from_stock_market(ticker, time)
-
-                with open(database_name, mode='a', newline='', encoding='utf-8') as file1:
-                    writer = csv.DictWriter(file1, fieldnames=fieldnames)
-                    row = {"Title": title, "Text": text, "Time": time, "Url": url, "Value": value}
-                    writer.writerow(row)
+    for thread in threads:
+        thread.join()
 
 
 if __name__ == '__main__':
-    concat(True)
+    concat()
     # print(value_from_stock_market("VKCO", "21.10.2024, 12:31"))
