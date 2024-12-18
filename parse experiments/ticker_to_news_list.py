@@ -8,7 +8,7 @@ from constants import *
 
 class TickerToNewsList:
     def __init__(self):
-        self.driver = Driver(uc=True)
+        self.driver = Driver(uc=True, headless=True)
         self.wait = WebDriverWait(self.driver, 5)
         self.ticker_dct = {}
         with open(COMPANY_URLS_CSV, 'r', newline='', encoding='utf-8') as csv_reader:
@@ -22,9 +22,13 @@ class TickerToNewsList:
                 url = url + '-news'
                 self.ticker_dct[ticker] = url
 
-    def get_to_pickle(self, ticker: str, pages_count: int = -1, print_progress: bool = False, start: int = 0):
+    def get_links(self, ticker: str,
+                  pages_count: int = -1,
+                  print_progress: bool = False,
+                  start: int = 0):
         """
         :param pages_count: how many pages with news list would be checked. -1 = All"""
+        print(ticker, self.ticker_dct.keys())
         assert ticker in self.ticker_dct
 
         url = self.ticker_dct[ticker]
@@ -60,9 +64,16 @@ class TickerToNewsList:
                     links.append(href)
                 i += 1
 
-        with open(PICKLE_LINKS_DIRECTORY + f'/{ticker}.pickle', 'wb') as file:
-            pickle.dump(links, file)
+        return links
 
+    def get_to_pickle(self, ticker: str,
+                  pages_count: int = -1,
+                  print_progress: bool = False,
+                  start: int = 0,
+                  path_folder: str = PICKLE_LINKS_DIRECTORY):
+        links = self.get_links(ticker, pages_count, print_progress, start, path_folder)
+        with open(path_folder + f'/{ticker}.pickle', 'wb') as file:
+            pickle.dump(links, file)
 
 if __name__ == '__main__':
     ttnl = TickerToNewsList()

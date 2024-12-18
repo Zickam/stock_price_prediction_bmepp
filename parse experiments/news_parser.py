@@ -10,10 +10,11 @@ import time as time_lib
 
 
 class NewsLoader:
+    driver = Driver(uc=True, headless=True)
+    wait = WebDriverWait(driver, 5)
+
     def __init__(self, ticker: str):
         self.ticker = ticker.upper()
-        self.driver = Driver(uc=True, headless=True)
-        self.wait = WebDriverWait(self.driver, 5)
         with open(f'{PICKLE_LINKS_DIRECTORY}/{self.ticker}.pickle', 'rb') as file:
             self.urls_list = pickle.load(file)
 
@@ -48,20 +49,21 @@ class NewsLoader:
                 writer.writerow(row)
                 file.flush()
 
-    def scrape_article(self, url):
-        self.driver.get(url)
-        title = self.wait.until(EC.presence_of_element_located((By.ID, 'articleTitle'))).text
-        time = self.wait.until(EC.presence_of_element_located(
+    @classmethod
+    def scrape_article(cls, url):
+        cls.driver.get(url)
+        title = cls.wait.until(EC.presence_of_element_located((By.ID, 'articleTitle'))).text
+        time = cls.wait.until(EC.presence_of_element_located(
             (By.CSS_SELECTOR, 'div .mt-2.flex.flex-col.gap-2.text-xs.md\\:mt-2\\.5.md\\:gap-2\\.5')
         ))
         time = time.find_element(By.CSS_SELECTOR, 'span').text
         time = time.replace('Опубликовано ', '')
-        separator_div = self.wait.until(EC.presence_of_element_located(
+        separator_div = cls.wait.until(EC.presence_of_element_located(
             (By.CSS_SELECTOR, "div.-mb-2.mt-12.h-0\\.5.w-\\[250px\\].bg-gradient-pro-separator")
         ))
 
         article_text = ""
-        elements = self.wait.until(EC.presence_of_all_elements_located((By.XPATH, "//p | //blockquote")))
+        elements = cls.wait.until(EC.presence_of_all_elements_located((By.XPATH, "//p | //blockquote")))
 
         for element in elements:
             if element.location['y'] >= separator_div.location['y']:
