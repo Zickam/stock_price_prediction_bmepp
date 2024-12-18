@@ -3,3 +3,7 @@
 **/.idea/
 .env
 tg_bot/images/*
+
+**/.ipynb_checkpoints/
+**/.virtual_documents/
+**/.~lock*
