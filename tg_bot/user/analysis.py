@@ -31,6 +31,8 @@ days = 30 * 6
 interval = CandleInterval.CANDLE_INTERVAL_DAY
 
 async def handleChosenTicker(msg: Message, state: FSMContext, ticker: str):
+    ticker = ticker.upper()
+
     report = await ReportMaker.makeReport(state, ticker)
     if not report.status:
         await msg.answer(report.status_description, parse_mode="HTML")

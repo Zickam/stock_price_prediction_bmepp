@@ -1,3 +1,4 @@
+import logging
 import math
 import datetime
 
@@ -49,6 +50,7 @@ def getSMAs(close_prices: list[float], window_size: int) -> list[float]:
 
 def getEMAs(close_prices: list[float], window_size: int, smoothing: float) -> list[float]:
     """exponential moving average"""
+    logging.info(close_prices)
     EMAs = [close_prices[window_size] - 1] # maybe set as a first SMA, accordingly to https://tabtrader.com/ru/academy/articles/exponential-moving-average-ema-explained
 
     for i in range(window_size, len(close_prices)):

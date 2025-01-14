@@ -1,3 +1,4 @@
+import logging
 import asyncio
 import os
 from datetime import timedelta, datetime
@@ -67,15 +68,17 @@ async def getStockCostByTicker(ticker: str, _datetime: datetime = None) -> float
         _datetime = now()
 
     figi = await getFIGIByTicker(ticker)
+    last_cost = None
     async with AsyncClient(TOKEN, target=INVEST_GRPC_API_SANDBOX) as client:
         for interval in intervals:
             async for candle in client.get_all_candles(
                     figi=figi,
-                    from_=_datetime - timedelta(minutes=2), # due to delay of stock data fetching through tinkoff api
-                    # to=_datetime - timedelta(minutes=1), # due to delay of stock data fetching through tinkoff api
+                    to=_datetime - timedelta(minutes=2), # due to delay of stock data fetching through tinkoff api
+                    from_=_datetime - timedelta(days=3), # due to delay of stock data fetching through tinkoff api
                     interval=interval
             ):
-                return candle.close.units + candle.close.nano / 10 ** 9
+                last_cost = candle.close.units + candle.close.nano / 10 ** 9
+    return last_cost
 
 async def getFIGIByTicker(ticker: str, class_code: str = "TQBR") -> str:
     return (await getAssetByTicker(ticker, class_code)).figi

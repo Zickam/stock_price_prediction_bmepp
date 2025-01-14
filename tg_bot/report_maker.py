@@ -15,6 +15,7 @@ import tinkoff_api
 from analysis.functions import getSimplePriceChangeByTicker
 from tg_bot.user.localizations.get_localizations import getText
 from tinkoff_api.utilities import getStockCostByTicker, getStockDataByTicker
+from ai_experiments.ai_model import predict
 
 tickers = {'ABIO': "'Артген'", 'ABRD': 'Абрау-Дюрсо', 'AFKS': "АФК 'Система'", 'AFLT': 'Аэрофлот-росс.авиалинао',
            'AKRN': 'Акрон', 'ALRS': 'АЛРОСА', 'AMEZ': 'Ашинский метзавод', 'APRI': 'АПРИ',
@@ -101,9 +102,16 @@ class ReportMaker:
         price_month_ago = await getStockCostByTicker(ticker, now() - timedelta(days=days))
         price_now = await getStockCostByTicker(ticker)
 
+        # price_change = 0
+        # price_month_ago = 0
+        # price_now = 0
+
+        perspectivity_explanation = predict(ticker)
+
         return (f"*{ticker.upper()}* stock price changed by *{round(price_change * 100)}%*\n"
                 f"Cost {days} days ago was *{price_month_ago}* RUB\n"
-                f"Now its cost is *{price_now}* RUB")
+                f"Now its cost is *{price_now}* RUB\n\n"
+                f"{perspectivity_explanation}")
 
     @staticmethod
     async def _getReportChart(
@@ -153,5 +161,6 @@ class ReportMaker:
             import urllib.parse
             text = urllib.parse.quote(str(ex), safe='/', encoding=None, errors=None)
             logging.error(ex)
+            raise ex
             return Report(False, f"Unhandled ERROR: {text}")
 

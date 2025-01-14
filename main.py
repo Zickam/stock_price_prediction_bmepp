@@ -2,7 +2,10 @@ import asyncio
 import logging
 import os
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(
+    format="%(levelname)s %(asctime)s [%(filename)s:%(lineno)d]: %(message)s",
+    level=logging.DEBUG,
+)
 
 
 from aiogram import Bot, Dispatcher
