@@ -64,7 +64,7 @@ def get_last_news(news_count: int, print_progress: bool = False):
             tickers.append((ticker, pages_count))
 
     # Используем multiprocessing для параллельной обработки тикеров
-    with Pool(processes=2) as pool:
+    with Pool(processes=5) as pool:
         pool.map(get_news_for_ticker, tickers)
 
 

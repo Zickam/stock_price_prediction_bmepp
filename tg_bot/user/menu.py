@@ -14,18 +14,14 @@ menu_router = Router()
 
 async def start(msg, state):
     await msg.answer(
-        await getText("welcome", state),
+        ("Привет! Это бот команды БМЕПП УрФУ, который является пользовательским интерфейсом"
+        " для проекта по предсказанию вектора движения цен активов"),
         reply_markup=await keyboards.menu.showMenu(state)
     )
 
 @menu_router.message(Command("start"))
 async def startMsg(msg: Message, state: FSMContext):
-    if "language" not in await state.get_data():
-        await msg.answer(
-            text=await getTextByLang("choose_language", "en"),
-            reply_markup=await keyboards.menu.askLanguage()
-        )
-        return
+    await state.update_data({"language": "ru"})
 
     await start(msg, state)
 
@@ -39,16 +35,20 @@ async def chooseRu(msg: Message, state: FSMContext):
     await state.update_data({"language": "ru"})
     await start(msg, state)
 
-@menu_router.message(filters.FilterKeyboardButton("keyboards.menu.about"))
+@menu_router.message(F.text == "О нас")
 async def showAboutMsg(msg: Message, state: FSMContext):
     await msg.answer(
-        await getText("about", state)
+        ("Главный разработчик: @nadpis_ne_imeet_smysla\n"
+        "Тимлид: @deshp666\n"
+        "Аналитик: @uzkate\n"
+        "Разработчик: @n1nja147\n"
+        "Разработчик: @Terafybo\n")
     )
 
-@menu_router.message(filters.FilterKeyboardButton("keyboards.menu.analysis"))
+@menu_router.message(F.text == "Анализ")
 async def showAnalysisMsg(msg: Message, state: FSMContext):
     await msg.answer(
-        await getText("choose_ticker", state),
+        "Напишите тикер компании или выберите тикер кнопками внизу",
         reply_markup=await keyboards.menu.showAnalysisMenu(state)
     )
     await state.set_state(states.Menu.choose_ticker)

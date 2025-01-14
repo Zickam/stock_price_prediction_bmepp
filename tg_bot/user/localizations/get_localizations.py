@@ -54,7 +54,7 @@ def _get(path: list[str], tmp_locale: dict) -> tuple[bool, str]:
         return False, f"Not found [{path[0]}] among {list(tmp_locale.keys())}"
 
 async def getText(path: str, state: FSMContext) -> str:
-    return await getTextByLang(path, (await state.get_data())["language"])
+    return await getTextByLang(path, (await state.get_data())["ru"])
 
 
 loadLocalizations()

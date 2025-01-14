@@ -108,9 +108,9 @@ class ReportMaker:
 
         perspectivity_explanation = predict(ticker)
 
-        return (f"*{ticker.upper()}* stock price changed by *{round(price_change * 100)}%*\n"
-                f"Cost {days} days ago was *{price_month_ago}* RUB\n"
-                f"Now its cost is *{price_now}* RUB\n\n"
+        return (f"*{ticker.upper()}* цена актива изменилась на *{round(price_change * 100)}%*\n"
+                f"Цена {days} дней назад была *{price_month_ago}₽*\n"
+                f"Сейчас цена *{price_now}₽*\n\n"
                 f"{perspectivity_explanation}")
 
     @staticmethod
@@ -146,14 +146,14 @@ class ReportMaker:
     ) -> Report:
 
         if not ticker or ticker.upper() not in tickers:
-            report_status = (await getText("unexpected_ticker", state)).format(
-                ticker=ticker
-            )
+            report_status = "Неожиданный тикер"
             return Report(False, report_status)
 
         try:
             img_path = await ReportMaker._getReportChart(ticker, days, interval)
             text = await ReportMaker._getReportText(ticker, days)
+
+            logging.info(f"Final text: {text}")
 
             return Report(True, text=text, photos=[img_path])
 

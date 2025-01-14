@@ -7,7 +7,12 @@ from tinkoff.invest import CandleInterval
 from tinkoff_api.utilities import getStockDataByTicker, getStockCostByTicker
 
 def getSimplePriceChange(price_a: float, price_b: float) -> float:
-    return (price_b - price_a) / price_a
+    try:
+        return (price_b - price_a) / price_a
+    except ZeroDivisionError:
+        return 0
+    except TypeError:
+        return 0
 
 def getTanHNormalizedPriceChange(price_a: float, price_b: float) -> float:
     return math.tanh(getSimplePriceChange(price_a, price_b))
@@ -50,7 +55,6 @@ def getSMAs(close_prices: list[float], window_size: int) -> list[float]:
 
 def getEMAs(close_prices: list[float], window_size: int, smoothing: float) -> list[float]:
     """exponential moving average"""
-    logging.info(close_prices)
     EMAs = [close_prices[window_size] - 1] # maybe set as a first SMA, accordingly to https://tabtrader.com/ru/academy/articles/exponential-moving-average-ema-explained
 
     for i in range(window_size, len(close_prices)):

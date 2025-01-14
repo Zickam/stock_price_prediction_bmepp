@@ -99,60 +99,66 @@ class Result(Enum):
 
 def predict(ticker: str) -> str:
     csv_path = f"../parse_experiments/recent_news/{ticker}.csv"
-    with open(
-            csv_path,
-            mode='r',
-            newline='',
-            encoding='utf-8'
-    ) as file:
-        file.seek(0)
-        reader = csv.DictReader(file)
-        news = []
-        predictors = []
+    try:
+        with open(
+                csv_path,
+                mode='r',
+                newline='',
+                encoding='utf-8'
+        ) as file:
+            file.seek(0)
+            reader = csv.DictReader(file)
+            news = []
+            predictors = []
 
-        for i, row in enumerate(reader):
-            title = row['Title']
-            text = row['Text']
-            time = row['Time']
-            url = row['Url']
+            for i, row in enumerate(reader):
+                title = row['Title']
+                text = row['Text']
+                time = row['Time']
+                url = row['Url']
 
-            time = datetime.datetime.strptime(time, "%d.%m.%Y, %H:%M")
-            if time < datetime.datetime.now() - datetime.timedelta(days=365 * 2):
-                continue
+                time = datetime.datetime.strptime(time, "%d.%m.%Y, %H:%M")
+                if time < datetime.datetime.now() - datetime.timedelta(days=365 * 2):
+                    continue
 
-            news.append({})
-            news[i]["text"] = row["Text"]
-            news[i]["url"] = row["Url"]
-            news[i]["title"] = row["Title"]
-            news[i]["text_cleared"] = getFullClearText(text)
+                news.append({})
+                news[i]["text"] = row["Text"]
+                news[i]["url"] = row["Url"]
+                news[i]["title"] = row["Title"]
+                news[i]["text_cleared"] = getFullClearText(text)
 
-            predictors.append(news[i]["text_cleared"])
+                predictors.append(news[i]["text_cleared"])
 
-        vectorized = vectorizer.transform(predictors)
+            if len(news) == 0:
+                return f"Не нашлось новостей за последние два года для {ticker} :("
 
-        y_predict = model.predict(vectorized)
+            vectorized = vectorizer.transform(predictors)
 
-        logging.info(f"PREDICT {y_predict}")
+            y_predict = model.predict(vectorized)
 
-        verdict = f"Оценка новостей связанных с компанией {ticker.upper()}:\n"
+            logging.info(f"PREDICT {y_predict}")
 
-        for i in range(len(news)):
-            match y_predict[i]:
-                case -1:
-                    mark = "падение"
-                case 1:
-                    mark = "рост"
-                case other:
-                    mark = f"{other}: непредвиденный аргумент y_predict[i]"
-            sample = f"{i + 1}. [{news[i]['title']}]({news[i]['url']}). Оценка: {mark}"
-            verdict += sample + "\n"
+            verdict = f"Оценка новостей связанных с компанией {ticker.upper()}:\n"
 
-        overall_mark = "ПАДЕНИЕ" if sum(y_predict) < 0 else "РОСТ"
-        verdict += ("\n"
-                    f"Общая оценка: *{overall_mark}*")
+            for i in range(len(news)):
+                match y_predict[i]:
+                    case -1:
+                        mark = "падение"
+                    case 1:
+                        mark = "рост"
+                    case other:
+                        mark = f"{other}: непредвиденный аргумент y_predict[i]"
+                sample = f"{i + 1}. [{news[i]['title']}]({news[i]['url']}). Оценка: {mark}"
+                verdict += sample + "\n"
 
-        return verdict
+            overall_mark = "ПАДЕНИЕ" if sum(y_predict) < 0 else "РОСТ"
+            verdict += ("\n"
+                        f"Общая оценка: *{overall_mark}*")
 
+            return verdict
+
+    except FileNotFoundError as ex:
+        return f"Не нашлось новостей за последние два года для {ticker} :("
 
 
 fit("../ai_experiments/database_some.csv")

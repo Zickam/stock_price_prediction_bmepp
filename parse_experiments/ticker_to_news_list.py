@@ -46,6 +46,8 @@ class TickerToNewsList:
                     link = li.find_element(By.TAG_NAME, "a")
                     href = link.get_attribute("href")
                     links.append(href)
+
+                self.driver.close()
         else:
             i = start
             while True:
@@ -63,6 +65,7 @@ class TickerToNewsList:
                     href = link.get_attribute("href")
                     links.append(href)
                 i += 1
+            self.driver.close()
 
         return links
 

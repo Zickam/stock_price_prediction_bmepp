@@ -33,6 +33,8 @@ interval = CandleInterval.CANDLE_INTERVAL_DAY
 async def handleChosenTicker(msg: Message, state: FSMContext, ticker: str):
     ticker = ticker.upper()
 
+    await msg.answer("Проводим анализ...")
+
     report = await ReportMaker.makeReport(state, ticker)
     if not report.status:
         await msg.answer(report.status_description, parse_mode="HTML")
@@ -40,13 +42,14 @@ async def handleChosenTicker(msg: Message, state: FSMContext, ticker: str):
         await showAnalysisMsg(msg, state)
         return
 
-    media_group = MediaGroupBuilder(caption=report.text)
+    media_group = MediaGroupBuilder()
 
     for photo in report.photos:
         media = FSInputFile(photo)
         media_group.add_photo(type="photo", media=media, parse_mode="Markdown")
 
     await msg.answer_media_group(media=media_group.build())
+    await msg.answer(report.text, disable_web_page_preview=True, parse_mode="Markdown")
 
     await report.clear()
 

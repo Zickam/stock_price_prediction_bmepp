@@ -21,9 +21,9 @@ async def askLanguage() -> ReplyKeyboardMarkup:
 
 async def showMenu(state: FSMContext) -> ReplyKeyboardMarkup:
     builder = ReplyKeyboardBuilder()
-    builder.row(KeyboardButton(text=await getText("keyboards.menu.analysis", state)))
-    builder.add(KeyboardButton(text=await getText("keyboards.menu.about", state)))
-    builder.add(KeyboardButton(text=await getText("keyboards.menu.language", state)))
+    builder.row(KeyboardButton(text="Анализ"))
+    builder.add(KeyboardButton(text="О нас"))
+    # builder.add(KeyboardButton(text=await getText("keyboards.menu.language", state)))
     builder.adjust(2)
     return builder.as_markup(resize_keyboard=True, is_persistent=True)
 

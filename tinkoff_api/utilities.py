@@ -53,6 +53,7 @@ async def getStockDataByTicker(
 
 
 intervals = [
+    CandleInterval.CANDLE_INTERVAL_HOUR,
     CandleInterval.CANDLE_INTERVAL_1_MIN,
     CandleInterval.CANDLE_INTERVAL_2_MIN,
     CandleInterval.CANDLE_INTERVAL_3_MIN,
@@ -60,7 +61,6 @@ intervals = [
     CandleInterval.CANDLE_INTERVAL_10_MIN,
     CandleInterval.CANDLE_INTERVAL_15_MIN,
     CandleInterval.CANDLE_INTERVAL_30_MIN,
-    CandleInterval.CANDLE_INTERVAL_HOUR,
 ]
 
 async def getStockCostByTicker(ticker: str, _datetime: datetime = None) -> float:
@@ -69,15 +69,20 @@ async def getStockCostByTicker(ticker: str, _datetime: datetime = None) -> float
 
     figi = await getFIGIByTicker(ticker)
     last_cost = None
+
     async with AsyncClient(TOKEN, target=INVEST_GRPC_API_SANDBOX) as client:
         for interval in intervals:
+            logging.info(f"interval {interval}")
             async for candle in client.get_all_candles(
-                    figi=figi,
-                    to=_datetime - timedelta(minutes=2), # due to delay of stock data fetching through tinkoff api
-                    from_=_datetime - timedelta(days=3), # due to delay of stock data fetching through tinkoff api
-                    interval=interval
+                figi=figi,
+                to=_datetime - timedelta(minutes=2),
+                from_=_datetime - timedelta(days=7),
+                interval=interval
             ):
                 last_cost = candle.close.units + candle.close.nano / 10 ** 9
+            if last_cost is not None:
+                break
+
     return last_cost
 
 async def getFIGIByTicker(ticker: str, class_code: str = "TQBR") -> str:
