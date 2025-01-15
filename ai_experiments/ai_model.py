@@ -20,6 +20,7 @@ from nltk.stem.snowball import SnowballStemmer
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from nltk.tokenize import sent_tokenize
 from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestRegressor
 import numpy as np
 from sklearn.model_selection import train_test_split
 
@@ -31,14 +32,12 @@ nltk.download('stopwords')
 stop_words = set(stopwords.words('russian'))
 stemmer = SnowballStemmer("russian")
 
-model = LogisticRegression(
-        max_iter=1900  # 1900
-    )
+model = RandomForestRegressor(n_estimators=120)
 vectorizer = TfidfVectorizer(stop_words=list(stop_words))
 
 allowed_symbols = (
         string.ascii_lowercase +
-        " -+%.," +
+        " -+%" +
         # string.digits +
         "абвгдежзийклмнопрстуфхцчшщъыьэюя"
 )
@@ -67,6 +66,7 @@ def getFullClearText(text: str) -> str:
     cleared_text = replaceSymbols(cleared_text)
     return cleared_text
 
+
 def fit(db_path: str, boundary: float = None):
     global model, vectorizer
 
@@ -76,34 +76,77 @@ def fit(db_path: str, boundary: float = None):
     if boundary is None:
         boundary = (df.Value.max() + df.Value.min()) / 2
         boundary = df.Value.median()
-        logging.info(f"Boundary value set to {boundary}")
+        print("Boundary value set to ", boundary)
 
-    values = np.array([-1 if value < boundary else 1 for value in df.Value])
+    # values = np.array([-1 if value < boundary else 1 for value in df.Value])
 
     cleared = []
     for text in df_texts:
         cleared.append(getFullClearText(text))
+        # print(cleared[-1])
+        # break
+        # print(cleared[-1])
+        # print("-----")
 
     vectorized = vectorizer.fit_transform(cleared)
 
-    if "model.pkl" not in os.listdir("."):
+    # for i in range(50):
+    #     df_vectorized = pd.DataFrame(vectorized[i].T.todense(),
+    #                   index=vectorizer.get_feature_names_out(), columns=["TF-IDF"])
+    #     df_vectorized = df_vectorized.sort_values('TF-IDF', ascending=False)
+    #     print(df_vectorized.head(10))
+
+    # test_size = 0
+    # random_state = 8471874
+
+    # x_train, x_test, y_train, y_test = train_test_split(
+    #     vectorized,
+    #     df.Value,
+    #     test_size=test_size,
+    #     random_state=random_state
+    # )
+
+    # # so we can get original text but not tokenized
+    # x_original_train, x_original_test, _, _ = train_test_split(
+    #     df_texts,
+    #     df.Value,
+    #     test_size=test_size,
+    #     random_state=random_state
+    # )
+
+    # x_test_texts = vectorizer.inverse_transform(x_test)
+    # print(x_test)
+    # print(x_test_texts)
+
+    if "model_rf120.pkl" not in os.listdir("."):
         logging.info("Model fitting process started")
 
-        model.fit(vectorized, values)
+        model.fit(vectorized, df.Value)
 
         logging.info("Model fit")
 
-        with open('model.pkl', 'wb') as f:
+        with open('model_rf120.pkl', 'wb') as f:
             pickle.dump(model, f)
             logging.info("Model saved")
 
     else:
         logging.info("Loading model...")
-        with open('model.pkl', 'rb') as f:
+        with open('model_rf120.pkl', 'rb') as f:
             model = pickle.load(f)
             logging.info("Model loaded")
 
+    # model.fit(vectorized, df.Value)
+
+    # with open('model_rf300.pkl', 'wb') as f:
+    #     pickle.dump(model, f)
+    #     print("Model saved")
+
+    # y_predict = model.predict(x_test)
+    # print(model.score(x_test, y_test))
+
 def predict(ticker: str) -> str:
+    global model
+
     csv_path = f"../parse_experiments/recent_news/{ticker}.csv"
     try:
         with open(
@@ -146,18 +189,19 @@ def predict(ticker: str) -> str:
 
             verdict = f"Оценка новостей связанных с компанией {ticker.upper()}:\n"
 
+            perspectivity = 0
             for i in range(len(news)):
-                match y_predict[i]:
-                    case -1:
-                        mark = "❌"
-                    case 1:
-                        mark = "✅"
-                    case other:
-                        mark = f"{other}: непредвиденный аргумент y_predict[i]"
+                if y_predict[i] < -0.015:
+                    mark = "❌"
+                    perspectivity -= 1
+                else:
+                    mark = "✅"
+                    perspectivity += 1
+
                 sample = f"{mark} {i + 1}. [{news[i]['title']}]({news[i]['url']})"
                 verdict += sample + "\n"
 
-            overall_mark = "НЕПЕРСПЕКТИВНАЯ" if sum(y_predict) < 0 else "ПЕРСПЕКТИВНАЯ"
+            overall_mark = "НЕПЕРСПЕКТИВНАЯ" if perspectivity < 0 else "ПЕРСПЕКТИВНАЯ"
             verdict += ("\n"
                         f"Общая оценка: *{overall_mark}*")
 
