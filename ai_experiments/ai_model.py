@@ -67,13 +67,18 @@ def getFullClearText(text: str) -> str:
     cleared_text = replaceSymbols(cleared_text)
     return cleared_text
 
-def fit(db_path: str):
+def fit(db_path: str, boundary: float = None):
     global model, vectorizer
 
     df = pd.read_csv(db_path)
     df_texts = df.Text
 
-    values = np.array([-1 if value < -0.08 else 1 for value in df.Value])
+    if boundary is None:
+        boundary = (df.Value.max() + df.Value.min()) / 2
+        boundary = df.Value.median()
+        logging.info(f"Boundary value set to {boundary}")
+
+    values = np.array([-1 if value < boundary else 1 for value in df.Value])
 
     cleared = []
     for text in df_texts:
@@ -144,9 +149,9 @@ def predict(ticker: str) -> str:
             for i in range(len(news)):
                 match y_predict[i]:
                     case -1:
-                        mark = "💩"
+                        mark = "❌"
                     case 1:
-                        mark = "🤑"
+                        mark = "✅"
                     case other:
                         mark = f"{other}: непредвиденный аргумент y_predict[i]"
                 sample = f"{mark} {i + 1}. [{news[i]['title']}]({news[i]['url']})"
@@ -162,4 +167,4 @@ def predict(ticker: str) -> str:
         return f"Не нашлось новостей за последние два года для {ticker} :("
 
 
-fit("../ai_experiments/database_some.csv")
+fit("../ai_experiments/database_new.csv")
