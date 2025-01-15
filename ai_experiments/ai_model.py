@@ -118,20 +118,20 @@ def fit(db_path: str, boundary: float = None):
     # print(x_test)
     # print(x_test_texts)
 
-    if "model_rf120.pkl" not in os.listdir("."):
+    if "model_rf.pkl" not in os.listdir("."):
         logging.info("Model fitting process started")
 
         model.fit(vectorized, df.Value)
 
         logging.info("Model fit")
 
-        with open('model_rf120.pkl', 'wb') as f:
+        with open('model_rf.pkl', 'wb') as f:
             pickle.dump(model, f)
             logging.info("Model saved")
 
     else:
         logging.info("Loading model...")
-        with open('model_rf120.pkl', 'rb') as f:
+        with open('model_rf.pkl', 'rb') as f:
             model = pickle.load(f)
             logging.info("Model loaded")
 
@@ -191,7 +191,7 @@ def predict(ticker: str) -> str:
 
             perspectivity = 0
             for i in range(len(news)):
-                if y_predict[i] < -0.015:
+                if y_predict[i] < -0.02:
                     mark = "❌"
                     perspectivity -= 1
                 else:
