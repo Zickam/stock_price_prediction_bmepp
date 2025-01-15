@@ -21,8 +21,10 @@ async def start(msg, state):
          "новостей выдает общую оценку акции\n\n"
          "Движение цены вверх = акция перспективная\n"
          "Движение цены вниз = акция неперспективная\n"
-         "Тикер это ID ценной бумаги на бирже"),
-        reply_markup=await keyboards.menu.showMenu(state)
+         "Тикер это ID ценной бумаги на бирже\n"),
+        reply_markup=await keyboards.menu.showMenu(state),
+        parse_mode="Markdown",
+        disable_web_page_preview=True
     )
 
 @menu_router.message(Command("start"))
@@ -54,7 +56,10 @@ async def showAboutMsg(msg: Message, state: FSMContext):
 @menu_router.message(F.text == "Анализ")
 async def showAnalysisMsg(msg: Message, state: FSMContext):
     await msg.answer(
-        "Напишите тикер компании или выберите тикер кнопками внизу",
-        reply_markup=await keyboards.menu.showAnalysisMenu(state)
+        ("Напишите тикер компании или выберите тикер кнопками внизу\n"
+         "[Список всех доступных для анализа тикеров](https://github.com/Zickam/stock_price_prediction_bmepp/blob/main/tickers.txt)"),
+        reply_markup=await keyboards.menu.showAnalysisMenu(state),
+        parse_mode="Markdown",
+        disable_web_page_preview=True
     )
     await state.set_state(states.Menu.choose_ticker)

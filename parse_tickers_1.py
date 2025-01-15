@@ -61,7 +61,7 @@ for needed_ticker in needed_tickers:
 needed_tickers = sorted(needed_tickers_dict.keys())
 
 with open("tickers.txt", "w") as file:
-    file.write("Компания - Тикер")
+    file.write("Компания - Тикер\n")
     for needed_ticker in needed_tickers:
         file.write(needed_ticker.replace("'", ""))
         file.write(" - ")
