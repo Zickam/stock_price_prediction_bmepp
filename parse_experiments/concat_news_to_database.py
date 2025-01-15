@@ -1,6 +1,8 @@
 import datetime
 import random
 import csv
+import time
+
 from constants import *
 import os
 import asyncio
@@ -26,6 +28,18 @@ def value_from_stock_market(ticker: str, datetime_str: str):
 
     return getTanHNormalizedPriceChangeByTicker(ticker, _datetime, needed_datetime)
 
+def __concat(row, ticker, writer):
+    title = row['Title']
+    text = row['Text']
+    _time = row['Time']
+    url = row['Url']
+    value = value_from_stock_market(ticker, _time)
+    if value is None:
+        print(f"None cost found for {ticker}, skipping...")
+        return
+
+    writer.writerow({"Title": title, "Text": text, "Time": _time, "Url": url, "Value": value})
+
 def _concat(csv_path: str):
     rows = []
     file1 = open(DATABASE_NAME, mode='a', newline='', encoding='utf-8')
@@ -37,17 +51,24 @@ def _concat(csv_path: str):
         ticker = csv_path.split('/')[-1].split('.')[0]
 
         for i, row in enumerate(reader):
-            title = row['Title']
-            text = row['Text']
-            time = row['Time']
-            url = row['Url']
+            ok = False
+            for j in range(1, 4):
+                try:
+                    __concat(row, ticker, writer)
+                    ok = True
+
+                except Exception as ex:
+                    print(ex)
+                    time.sleep(60 * j)
+
+                if ok:
+                    break
+
             if PRINT_PROGRESS:
                 print(f"{ticker} is handled for {round(i / lines_amount * 100, 2)}%")
                 # print('working with ticker', ticker, 'url:', url)
 
-            value = value_from_stock_market(ticker, time)
 
-            writer.writerow({"Title": title, "Text": text, "Time": time, "Url": url, "Value": value})
 
     print(ticker, "has finished processing")
 
@@ -68,11 +89,18 @@ def concat():
 
     for thread in threads:
         thread.start()
+        time.sleep(1)
 
     for thread in threads:
         thread.join()
 
 
 if __name__ == '__main__':
+
+    try:
+        os.system("rm -r ../analysis/instruments")
+        os.mkdir("../analysis/instruments")
+    except Exception as ex:
+        ...
     concat()
     # print(value_from_stock_market("VKCO", "21.10.2024, 12:31"))

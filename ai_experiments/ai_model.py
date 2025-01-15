@@ -6,6 +6,12 @@ import os
 from enum import Enum
 import string
 
+
+logging.basicConfig(
+    format="%(levelname)s %(asctime)s [%(filename)s:%(lineno)d]: %(message)s",
+    level=logging.DEBUG,
+)
+
 import pandas as pd
 import nltk
 from nltk.corpus import stopwords
@@ -16,6 +22,7 @@ from nltk.tokenize import sent_tokenize
 from sklearn.linear_model import LogisticRegression
 import numpy as np
 from sklearn.model_selection import train_test_split
+
 
 
 nltk.download('punkt_tab')
@@ -66,7 +73,7 @@ def fit(db_path: str):
     df = pd.read_csv(db_path)
     df_texts = df.Text
 
-    values = np.array([-1 if value < 0 else 1 for value in df.Value])
+    values = np.array([-1 if value < -0.08 else 1 for value in df.Value])
 
     cleared = []
     for text in df_texts:
@@ -86,16 +93,10 @@ def fit(db_path: str):
             logging.info("Model saved")
 
     else:
+        logging.info("Loading model...")
         with open('model.pkl', 'rb') as f:
             model = pickle.load(f)
             logging.info("Model loaded")
-
-
-
-class Result(Enum):
-    down = -1
-    no_info = 0
-    up = 1
 
 def predict(ticker: str) -> str:
     csv_path = f"../parse_experiments/recent_news/{ticker}.csv"
@@ -143,15 +144,15 @@ def predict(ticker: str) -> str:
             for i in range(len(news)):
                 match y_predict[i]:
                     case -1:
-                        mark = "падение"
+                        mark = "💩"
                     case 1:
-                        mark = "рост"
+                        mark = "🤑"
                     case other:
                         mark = f"{other}: непредвиденный аргумент y_predict[i]"
-                sample = f"{i + 1}. [{news[i]['title']}]({news[i]['url']}). Оценка: {mark}"
+                sample = f"{mark} {i + 1}. [{news[i]['title']}]({news[i]['url']})"
                 verdict += sample + "\n"
 
-            overall_mark = "ПАДЕНИЕ" if sum(y_predict) < 0 else "РОСТ"
+            overall_mark = "НЕПЕРСПЕКТИВНАЯ" if sum(y_predict) < 0 else "ПЕРСПЕКТИВНАЯ"
             verdict += ("\n"
                         f"Общая оценка: *{overall_mark}*")
 

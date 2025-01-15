@@ -1,3 +1,4 @@
+import pickle
 import math
 import datetime
 import os
@@ -15,6 +16,7 @@ TOKEN = os.getenv("TINKOFF_INVESTMENTS_TOKEN")
 client = Client(TOKEN)
 
 
+
 def getSimplePriceChange(price_a: float, price_b: float) -> float:
     return (price_b - price_a) / price_a
 
@@ -28,6 +30,8 @@ def getTanHNormalizedPriceChangeByTicker(
 ) -> float:
     cost_a = getStockCostByTicker(ticker, datetime_a)
     cost_b = getStockCostByTicker(ticker, datetime_b)
+    if cost_a is None or cost_b is None:
+        return None
     return getTanHNormalizedPriceChange(
         cost_a,
         cost_b
@@ -66,19 +70,30 @@ def getStockCostByTicker(ticker: str, _datetime: datetime = None) -> float:
                 # print(candle)
                 return candle.close.units + candle.close.nano / 10 ** 9
 
-def getAssetByTicker(ticker: str, class_code: str = "TQBR") -> Instrument:
-    r = None
-    with Client(TOKEN, target=INVEST_GRPC_API_SANDBOX) as client:
-        try:
-            r = client.instruments.get_instrument_by(id_type=InstrumentIdType.INSTRUMENT_ID_TYPE_TICKER, id=ticker.upper(), class_code=class_code)
-        except tinkoff.invest.exceptions.RequestError as ex:
-            while r is None:
-                if ex.code == StatusCode.RESOURCE_EXHAUSTED:
-                    time.sleep(60)
-                r = client.instruments.get_instrument_by(id_type=InstrumentIdType.INSTRUMENT_ID_TYPE_TICKER,
-                                                         id=ticker.upper(), class_code=class_code)
+    print("Not found cost for", ticker, _datetime)
 
-        return r.instrument
+def getAssetByTicker(ticker: str, class_code: str = "TQBR") -> Instrument:
+    path = "../analysis/instruments"
+    if ticker not in os.listdir(path):
+        r = None
+        with Client(TOKEN, target=INVEST_GRPC_API_SANDBOX) as client:
+            try:
+                r = client.instruments.get_instrument_by(id_type=InstrumentIdType.INSTRUMENT_ID_TYPE_TICKER, id=ticker.upper(), class_code=class_code)
+            except tinkoff.invest.exceptions.RequestError as ex:
+                while r is None:
+                    if ex.code == StatusCode.RESOURCE_EXHAUSTED:
+                        time.sleep(60)
+                    r = client.instruments.get_instrument_by(id_type=InstrumentIdType.INSTRUMENT_ID_TYPE_TICKER,
+                                                             id=ticker.upper(), class_code=class_code)
+        with open(f"{path}/{ticker}", "wb") as file:
+            pickle.dump(r.instrument, file)
+        intrument = r.instrument
+
+    else:
+        with open(f"{path}/{ticker}", "rb") as file:
+            intrument = pickle.load(file)
+
+    return intrument
 
 
 def getFIGIByTicker(ticker: str, class_code: str = "TQBR") -> str:

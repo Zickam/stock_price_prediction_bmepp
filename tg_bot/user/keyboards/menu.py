@@ -30,7 +30,7 @@ async def showMenu(state: FSMContext) -> ReplyKeyboardMarkup:
 async def showAnalysisMenu(state: FSMContext) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
 
-    tickers = ["ydex", "sber", "sofl", "tcsg"]
+    tickers = ["ydex", "sber", "sofl", "t"]
 
     for ticker in tickers:
         builder.add(
