@@ -6,6 +6,7 @@ figure out whether it is useful or not
 * Web scraping techniques implemented by **selenium**
 * Analytical model based on **Random Forest wide-range discrete Classificator**
 * **Telegram bot** as a user interface
+* **Docker** as a deployment tool 
 
 ## Technologies used
 * Python
@@ -13,3 +14,4 @@ figure out whether it is useful or not
 * Sklearn
 * Aiogram
 * Selenium
+* Docker
